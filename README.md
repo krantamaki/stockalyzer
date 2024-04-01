@@ -1,5 +1,5 @@
-## Stockalyzer
-# General purpose stock analysis toolbox
+# Stockalyzer
+## General purpose stock analysis toolbox
 
 Stockalyzer is meant as a general tool for analyzing stocks. Underlying implementation is built on yfinance library that works as a wrapper to access financial data from the Yahoo Finance website. By basic analysis we can make usable and easily digestible conclusions on the health of the company. 
 
