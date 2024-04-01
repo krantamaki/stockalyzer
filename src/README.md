@@ -1,0 +1,3 @@
+## Source code
+
+The source code is divided tino individual modules that should be (for the most part) self-sufficient. This software is designed to follow some basic and well established principles. These principles include (but are not limited to) DRY, decoupling and test driven development. Of these decoupling is heavily present in the module design and test driven development in the tests present at each module. 
