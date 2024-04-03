@@ -247,7 +247,7 @@ def add_table(name: str, columns: list[tuple[str, str]], database: str = None, r
 
 
 def initialize_database(table_names: list[str], table_columns: list[list[tuple[str, str]]],
-                  database: str = None, reconnect: bool = False, reset: bool = False) -> None:
+                        database: str = None, reconnect: bool = False, reset: bool = False) -> None:
     """Function for initializing a database. Creates the needed database file and the specified tables with
     wanted columns. If a database already exists in the wanted path doesn't do anything unless reset kwarg is 
     set to True. In this case all tables will be removed from the old database and the new ones created in their
@@ -344,7 +344,7 @@ def get_by_key(key: any, table_name: str, column_name: str, database: str = None
         raise ValueError(f"Failed to retrieve rows by key {key} for column {column_name} in table {table_name}: {error}")
     
     rows = res.fetchall()
-    _logger.info(f"Found {len(rows)} rows with key {key} for column {column_name} in table {table_name}")
+    _logger.debug(f"Found {len(rows)} rows with key {key} for column {column_name} in table {table_name}")
     finalize_execution(cur)
 
     return rows
@@ -376,7 +376,7 @@ def delete_by_key(key: any, table_name: str, column_name: str, database: str = N
         _logger.error(f"Failed to delete rows by key {key} for column {column_name} in table {table_name}: {error}")
         raise ValueError(f"Failed to delete rows by key {key} for column {column_name} in table {table_name}: {error}")
 
-    _logger.info(f"Deleted {res.rowcount} rows with key {key} for column {column_name} in table {table_name}")
+    _logger.debug(f"Deleted {res.rowcount} rows with key {key} for column {column_name} in table {table_name}")
 
     finalize_execution(cur)
 
