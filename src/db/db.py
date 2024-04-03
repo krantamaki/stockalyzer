@@ -11,7 +11,6 @@ from pathlib import Path
 # We use Pythons logging library to control and redirect our outputs.
 # To this end be need to define the Logger object
 _logger = logging.getLogger(__name__)
-_logger.info("Test")
 
 # Global variable that holds the connection to the database
 # Should only be access via the get_connection function
