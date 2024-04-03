@@ -23,8 +23,8 @@ import inspect
 # Configure the root Logger object. This needs to be done
 # before importing modules using logging.
 if __name__ == "__main__":
-  logging.basicConfig(filename='db_tests.log', level=logging.INFO, force=True,
-                      format="%(levelname)s: %(name)s - %(message)s")
+    logging.basicConfig(filename='db_tests.log', level=logging.INFO, force=True,
+                        format="%(levelname)s: %(name)s - %(message)s")
 
 from db import *
 
@@ -162,7 +162,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         cur.execute(f"CREATE TABLE IF NOT EXISTS name3 (column3 TEXT);")
 
         with self.assertRaises(ValueError):
-          drop_table("name4", database=database, reconnect=True)
+            drop_table("name4", database=database, reconnect=True)
 
         finalize_execution(cur)
         _delete_if_exists(database)
@@ -259,8 +259,8 @@ class TestDatabaseFunctions(unittest.TestCase):
                             database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-          insert_row(["test", 0.0], "name1", database=database, reconnect=True)
-          insert_row(["test2"], "name1", database=database, reconnect=True)
+            insert_row(["test", 0.0], "name1", database=database, reconnect=True)
+            insert_row(["test2"], "name1", database=database, reconnect=True)
 
         _delete_if_exists(database)
 
@@ -332,7 +332,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-          get_by_key(-1.0, "name2", "column2", database=database, reconnect=True)
+            get_by_key(-1.0, "name2", "column2", database=database, reconnect=True)
 
         _delete_if_exists(database)
 
@@ -347,7 +347,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-          get_by_key(0.0, "name1", "column3", database=database, reconnect=True)
+            get_by_key(0.0, "name1", "column3", database=database, reconnect=True)
 
         _delete_if_exists(database)
 
@@ -410,7 +410,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-          delete_by_key(-1.0, "name2", "column2", database=database, reconnect=True)
+            delete_by_key(-1.0, "name2", "column2", database=database, reconnect=True)
 
         _delete_if_exists(database)
 
@@ -425,7 +425,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-          delete_by_key(0.0, "name1", "column3", database=database, reconnect=True)
+            delete_by_key(0.0, "name1", "column3", database=database, reconnect=True)
 
         _delete_if_exists(database)
 

@@ -371,7 +371,7 @@ def delete_by_key(key: any, table_name: str, column_name: str, database: str = N
     cur = get_cursor(database=database, reconnect=reconnect)
 
     try:
-      res = cur.execute(f"DELETE FROM {check(table_name)} WHERE {check(column_name)} = '{check(str(key))}'")
+        res = cur.execute(f"DELETE FROM {check(table_name)} WHERE {check(column_name)} = '{check(str(key))}'")
     except sql.OperationalError as error:
         _logger.error(f"Failed to delete rows by key {key} for column {column_name} in table {table_name}: {error}")
         raise ValueError(f"Failed to delete rows by key {key} for column {column_name} in table {table_name}: {error}")
