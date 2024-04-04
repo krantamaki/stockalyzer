@@ -276,7 +276,7 @@ class TestDatabaseFunctions(unittest.TestCase):
 
         _delete_if_exists(database)
 
-    def test_h_get_by_key_1(self):
+    def test_h_get_by_value_1(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -286,12 +286,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
-        rows = get_by_key("test1", "name1", "column1", database=database, reconnect=True)
+        rows = get_by_value("test1", "name1", "column1", database=database, reconnect=True)
 
         self.assertTrue(len(rows) == 1)
         _delete_if_exists(database)
 
-    def test_h_get_by_key_2(self):
+    def test_h_get_by_value_2(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -301,12 +301,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
-        rows = get_by_key(0.0, "name1", "column2", database=database, reconnect=True)
+        rows = get_by_value(0.0, "name1", "column2", database=database, reconnect=True)
 
         self.assertTrue(len(rows) == 2)
         _delete_if_exists(database)
 
-    def test_h_get_by_key_3(self):
+    def test_h_get_by_value_3(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -316,12 +316,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
-        rows = get_by_key(-1.0, "name1", "column2", database=database, reconnect=True)
+        rows = get_by_value(-1.0, "name1", "column2", database=database, reconnect=True)
 
         self.assertTrue(len(rows) == 0)
         _delete_if_exists(database)
 
-    def test_h_get_by_key_4(self):
+    def test_h_get_by_value_4(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -332,11 +332,11 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-            get_by_key(-1.0, "name2", "column2", database=database, reconnect=True)
+            get_by_value(-1.0, "name2", "column2", database=database, reconnect=True)
 
         _delete_if_exists(database)
 
-    def test_h_get_by_key_5(self):
+    def test_h_get_by_value_5(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -347,11 +347,11 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-            get_by_key(0.0, "name1", "column3", database=database, reconnect=True)
+            get_by_value(0.0, "name1", "column3", database=database, reconnect=True)
 
         _delete_if_exists(database)
 
-    def test_i_delete_by_key_1(self):
+    def test_i_delete_by_value_1(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -361,13 +361,13 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
-        delete_by_key("test1", "name1", "column1", database=database, reconnect=True)
-        rows = get_by_key("test1", "name1", "column1", database=database, reconnect=True)
+        delete_by_value("test1", "name1", "column1", database=database, reconnect=True)
+        rows = get_by_value("test1", "name1", "column1", database=database, reconnect=True)
 
         self.assertTrue(len(rows) == 0)
         _delete_if_exists(database)
 
-    def test_i_delete_by_key_2(self):
+    def test_i_delete_by_value_2(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -377,13 +377,13 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
-        delete_by_key(0.0, "name1", "column2", database=database, reconnect=True)
-        rows = get_by_key(0.0, "name1", "column2", database=database, reconnect=True)
+        delete_by_value(0.0, "name1", "column2", database=database, reconnect=True)
+        rows = get_by_value(0.0, "name1", "column2", database=database, reconnect=True)
 
         self.assertTrue(len(rows) == 0)
         _delete_if_exists(database)
 
-    def test_i_delete_by_key_3(self):
+    def test_i_delete_by_value_3(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -393,13 +393,13 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
-        delete_by_key(-1.0, "name1", "column2", database=database, reconnect=True)
-        rows = get_by_key(-1.0, "name1", "column2", database=database, reconnect=True)
+        delete_by_value(-1.0, "name1", "column2", database=database, reconnect=True)
+        rows = get_by_value(-1.0, "name1", "column2", database=database, reconnect=True)
 
         self.assertTrue(len(rows) == 0)
         _delete_if_exists(database)
 
-    def test_i_delete_by_key_4(self):
+    def test_i_delete_by_value_4(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -410,11 +410,11 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-            delete_by_key(-1.0, "name2", "column2", database=database, reconnect=True)
+            delete_by_value(-1.0, "name2", "column2", database=database, reconnect=True)
 
         _delete_if_exists(database)
 
-    def test_i_delete_by_key_5(self):
+    def test_i_delete_by_value_5(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -425,11 +425,11 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-            delete_by_key(0.0, "name1", "column3", database=database, reconnect=True)
+            delete_by_value(0.0, "name1", "column3", database=database, reconnect=True)
 
         _delete_if_exists(database)
 
-    def test_j_update_by_key_1(self):
+    def test_j_update_by_value_1(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -439,13 +439,13 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
-        update_by_key("test1", ("column1", "test4"), "name1", "column1", database=database, reconnect=True)
-        rows = get_by_key("test4", "name1", "column1", database=database, reconnect=True)
+        update_by_value("test1", ("column1", "test4"), "name1", "column1", database=database, reconnect=True)
+        rows = get_by_value("test4", "name1", "column1", database=database, reconnect=True)
 
         self.assertTrue(len(rows) == 1)
         _delete_if_exists(database)
 
-    def test_j_update_by_key_2(self):
+    def test_j_update_by_value_2(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -455,13 +455,13 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
-        update_by_key(1.0, ("column1", "test4"), "name1", "column2", database=database, reconnect=True)
-        rows = get_by_key("test4", "name1", "column1", database=database, reconnect=True)
+        update_by_value(1.0, ("column1", "test4"), "name1", "column2", database=database, reconnect=True)
+        rows = get_by_value("test4", "name1", "column1", database=database, reconnect=True)
 
         self.assertTrue(len(rows) == 1)
         _delete_if_exists(database)
 
-    def test_j_update_by_key_3(self):
+    def test_j_update_by_value_3(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -471,14 +471,14 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
-        update_by_key(-1.0, ("column1", "test4"), "name1", "column2", database=database, reconnect=True)
-        rows = get_by_key("test4", "name1", "column1", database=database, reconnect=True)
+        update_by_value(-1.0, ("column1", "test4"), "name1", "column2", database=database, reconnect=True)
+        rows = get_by_value("test4", "name1", "column1", database=database, reconnect=True)
 
         self.assertTrue(len(rows) == 0)
 
         _delete_if_exists(database)
 
-    def test_j_update_by_key_4(self):
+    def test_j_update_by_value_4(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -489,11 +489,11 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-            update_by_key(0.0, ("column1", "test4"), "name1", "column2", database=database, reconnect=True)
+            update_by_value(0.0, ("column1", "test4"), "name1", "column2", database=database, reconnect=True)
 
         _delete_if_exists(database)
 
-    def test_j_update_by_key_5(self):
+    def test_j_update_by_value_5(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
@@ -504,7 +504,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-            update_by_key(1.0, ("column1", "test4"), "name2", "column2", database=database, reconnect=True)
+            update_by_value(1.0, ("column1", "test4"), "name2", "column2", database=database, reconnect=True)
 
         _delete_if_exists(database)
 

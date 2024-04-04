@@ -8,6 +8,6 @@ from .db import drop_table
 from .db import add_table
 from .db import initialize_database
 from .db import insert_row
-from .db import get_by_key
-from .db import delete_by_key
-from .db import update_by_key
+from .db import get_by_value
+from .db import delete_by_value
+from .db import update_by_value

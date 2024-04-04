@@ -43,30 +43,32 @@ def check(text: str) -> str:
     :rtype: str
     """
     valid = True
+    violating_chars = []
 
     # We don't allow comments in the input
     if ("--" in text) or ("/*" in text) or ("*/" in text):
-        valid = False
-    
-    # We don't allow closing (or opening) brackets
-    if ('(' in text) or (')' in text):
+        violating_chars.append("-- or /* or */")
         valid = False
 
     # We don't allow ending the statement
     if ';' in text:
+        violating_chars.append(";")
         valid = False
 
     # We don't allow references to user or global variables
     if '@' in text:
+        violating_chars.append("@")
         valid = False
       
     # We don't allow wildcards
     if ('%' in text) or ('_' in text):
+        violating_chars.append("% or _")
         valid = False
 
     if not valid:
-        _logger.error(f"SQL injection vulnerability spotted with input {text}!")
-        raise ValueError(f"SQL injection vulnerability spotted with input {text}!")
+        violating_char_str = ", ".join(violating_chars)
+        _logger.error(f"SQL injection vulnerability spotted with input {text}! (Violating char(s) = {violating_char_str})")
+        raise ValueError(f"SQL injection vulnerability spotted with input {text}! (Violating char(s) = {violating_char_str})")
     
     return text
 
@@ -114,7 +116,9 @@ def get_connection(database: str = None, reconnect: bool = False, generate: bool
     if _connection is None or reconnect:
         if Path(str(database)).is_file() or generate or database == ":memory:":
             if database != _connected_database:
-                _logger.warning(f"Changing the connected database during program execution is not recommended! (Changing from {_connected_database} to {database})")
+                if _connection is not None:
+                    _logger.warning(f"Changing the connected database during program execution is not recommended! (Changing from {_connected_database} to {database})")
+                
                 _connection = sql.connect(database)
                 _connected_database = database
 
@@ -317,14 +321,14 @@ def insert_row(row_values: list[any], table_name: str, database: str = None, rec
     finalize_execution(cur)
 
 
-def get_by_key(key: any, table_name: str, column_name: str, database: str = None, reconnect: bool = False) -> list[tuple[any, ...]]:
+def get_by_value(value: any, table_name: str, column_name: str, database: str = None, reconnect: bool = False) -> list[tuple[any, ...]]:
     """Function for accessing row(s) in a table by some key value for a column.
 
-    :param key: They key by which rows are queried
-    :type key: any
+    :param value: They value by which rows are queried
+    :type value: any
     :param table_name: The name of the table from which rows are queried
     :type table_name: str
-    :param column_name: The name of the column in which the key is matched
+    :param column_name: The name of the column in which the value is matched
     :type column_name: str
     :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
                      is already established no need to pass a parameter. Defaults to None
@@ -338,26 +342,26 @@ def get_by_key(key: any, table_name: str, column_name: str, database: str = None
     cur = get_cursor(database=database, reconnect=reconnect)
 
     try:
-        res = cur.execute(f"SELECT * FROM {check(table_name)} WHERE {check(column_name)} = '{check(str(key))}'")
+        res = cur.execute(f"SELECT * FROM {check(table_name)} WHERE {check(column_name)} = '{check(str(value))}'")
     except sql.OperationalError as error:
-        _logger.error(f"Failed to retrieve rows by key {key} for column {column_name} in table {table_name}: {error}")
-        raise ValueError(f"Failed to retrieve rows by key {key} for column {column_name} in table {table_name}: {error}")
+        _logger.error(f"Failed to retrieve rows by value {value} for column {column_name} in table {table_name}: {error}")
+        raise ValueError(f"Failed to retrieve rows by value {value} for column {column_name} in table {table_name}: {error}")
     
     rows = res.fetchall()
-    _logger.debug(f"Found {len(rows)} rows with key {key} for column {column_name} in table {table_name}")
+    _logger.debug(f"Found {len(rows)} rows with value {value} for column {column_name} in table {table_name}")
     finalize_execution(cur)
 
     return rows
 
 
-def delete_by_key(key: any, table_name: str, column_name: str, database: str = None, reconnect: bool = False) -> None:
-    """Function for deleting row(s) in a table by some key value for a column.
+def delete_by_value(value: any, table_name: str, column_name: str, database: str = None, reconnect: bool = False) -> None:
+    """Function for deleting row(s) in a table by some value value for a column.
 
-    :param key: They key by which rows are deleted
-    :type key: any
+    :param value: They value by which rows are deleted
+    :type value: any
     :param table_name: The name of the table from which rows are deleted
     :type table_name: str
-    :param column_name: The name of the column in which the key is matched
+    :param column_name: The name of the column in which the value is matched
     :type column_name: str
     :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
                      is already established no need to pass a parameter. Defaults to None
@@ -371,28 +375,28 @@ def delete_by_key(key: any, table_name: str, column_name: str, database: str = N
     cur = get_cursor(database=database, reconnect=reconnect)
 
     try:
-        res = cur.execute(f"DELETE FROM {check(table_name)} WHERE {check(column_name)} = '{check(str(key))}'")
+        res = cur.execute(f"DELETE FROM {check(table_name)} WHERE {check(column_name)} = '{check(str(value))}'")
     except sql.OperationalError as error:
-        _logger.error(f"Failed to delete rows by key {key} for column {column_name} in table {table_name}: {error}")
-        raise ValueError(f"Failed to delete rows by key {key} for column {column_name} in table {table_name}: {error}")
+        _logger.error(f"Failed to delete rows by value {value} for column {column_name} in table {table_name}: {error}")
+        raise ValueError(f"Failed to delete rows by value {value} for column {column_name} in table {table_name}: {error}")
 
-    _logger.debug(f"Deleted {res.rowcount} rows with key {key} for column {column_name} in table {table_name}")
+    _logger.debug(f"Deleted {res.rowcount} rows with value {value} for column {column_name} in table {table_name}")
 
     finalize_execution(cur)
 
 
-def update_by_key(key: any, value_tuple: tuple[str, any], table_name: str, column_name: str, 
+def update_by_value(value: any, value_tuple: tuple[str, any], table_name: str, column_name: str, 
                   database: str = None, reconnect: bool = False) -> None:
-    """Function for updating row(s) in given table by some key for a column. If no row has the key
+    """Function for updating row(s) in given table by some value for a column. If no row has the value
     does nothing.
 
-    :param key: They key by which rows are updated
-    :type key: any
+    :param value: They value by which rows are updated
+    :type value: any
     :param value_tuple: Tuple containing the name of the column to be updated and the new value
     :type value_tuple: tuple[str, any]
     :param table_name: The name of the table from which rows are updated
     :type table_name: str
-    :param column_name: The name of the column in which the key is matched
+    :param column_name: The name of the column in which thevalue is matched
     :type column_name: str
     :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
                      is already established no need to pass a parameter. Defaults to None
@@ -407,14 +411,14 @@ def update_by_key(key: any, value_tuple: tuple[str, any], table_name: str, colum
 
     try:
         cur.execute(f"""UPDATE {check(table_name)} SET {check(value_tuple[0])} = '{check(str(value_tuple[1]))}' 
-                        WHERE {check(column_name)} = '{check(str(key))}';""")
+                        WHERE {check(column_name)} = '{check(str(value))}';""")
     except (sql.OperationalError, sql.IntegrityError) as error:
-        _logger.error(f"Failed to update rows by key {key} for column {column_name} in table {table_name}: {error}")
-        raise ValueError(f"Failed to update rows by key {key} for column {column_name} in table {table_name}: {error}")
+        _logger.error(f"Failed to update rows by value {value} for column {column_name} in table {table_name}: {error}")
+        raise ValueError(f"Failed to update rows by value {value} for column {column_name} in table {table_name}: {error}")
     
     finalize_execution(cur)
 
 
 # List the functions and variables accessible in other modules
 __all__ = ["check", "finalize_execution", "get_connection", "get_cursor", "check_database", "drop_table", "add_table", 
-           "initialize_database", "insert_row", "get_by_key", "delete_by_key", "update_by_key"]
+           "initialize_database", "insert_row", "get_by_value", "delete_by_value", "update_by_value"]
