@@ -6,10 +6,10 @@ Covers some function, but not all. Excluded functions are
   add_table
   get_connection
 
-Run from the examples directory
+NOTE! Run from the stockalyzer directory with command
+  > python3 -m example.db_example
 """
 import logging
-import sys
 import os
 import numpy as np
 
@@ -23,9 +23,9 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 
-# Move to src directory where the db database is available
-sys.path.append("../src")
-from db import *
+# Import the db module. For this to work run the script as instructed at the 
+# beginning of the file
+from src.db import *
 
 
 # We will use a database called
