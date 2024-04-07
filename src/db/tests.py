@@ -511,3 +511,6 @@ class TestDatabaseFunctions(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+__all__ = ["TestDatabaseFunctions"]
