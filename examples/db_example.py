@@ -7,7 +7,7 @@ Covers some function, but not all. Excluded functions are
   get_connection
 
 NOTE! Run from the stockalyzer directory with command
-  > python3 -m example.db_example
+  > python3 -m examples.db_example
 """
 import logging
 import os
