@@ -1,5 +1,7 @@
 """
-Module for doing general operations on a database
+Module for doing general operations on a database. This module is built around the singleton
+design principle. While the SQLite should support multiple connections, we will still only
+allow for a single connection and then have clients use cursor to act on the connection.
 """
 from __future__ import annotations
 import sqlite3 as sql
@@ -135,34 +137,23 @@ def get_connection(database: str = None, reconnect: bool = False, generate: bool
     return _connection
 
 
-def get_cursor(database: str = None, reconnect: bool = False) -> sql.Cursor:
+def get_cursor() -> sql.Cursor:
     """Function for accessing a cursor to the specified database
-
-    :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
-                     is already established no need to pass a parameter. Defaults to None
-    :type database: str, optional
-    :param reconnect: Boolean flag allowing establishing a connection to a different database. Defaults to False
-    :type reconnect: bool, optional
 
     :return: A Cursor object to the specified database
     :rtype: sqlite3.Cursor
     """
-    con = get_connection(database=database, reconnect=reconnect)
+    con = get_connection()
 
     return con.cursor()
 
 
-def check_database(table_names: list[str], database: str = None, reconnect: bool = False, no_extras: bool = False) -> bool:
+def check_database(table_names: list[str], no_extras: bool = False) -> bool:
     """Function that checks if the required tables exist in the current database. Note that this function only
     verifies that the some tables of the specified names exist, but not assert that they would have a correct schema.
 
     :param table_names: A list of the names of the tables of interest
     :type table_names: list[str] 
-    :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
-                     is already established no need to pass a parameter. Defaults to None
-    :type database: str, optional
-    :param reconnect: Boolean flag allowing establishing a connection to a different database. Defaults to False
-    :type reconnect: bool, optional
     :param no_extras: Boolean flag telling if the database is allowed to contain extra tables in addition to \
                       the ones listed in table_names. Defaults to False
     :type no_extras: bool, optional
@@ -170,7 +161,7 @@ def check_database(table_names: list[str], database: str = None, reconnect: bool
     :return: True if tables exist False otherwise
     :rtype: bool
     """
-    cur = get_cursor(database=database, reconnect=reconnect)
+    cur = get_cursor()
     res = cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
 
     database_tables_set = set([tup[0] for tup in res.fetchall()])
@@ -187,23 +178,18 @@ def check_database(table_names: list[str], database: str = None, reconnect: bool
     return True
 
 
-def drop_table(name: str, database: str = None, reconnect: bool = False) -> None:
+def drop_table(name: str) -> None:
     """Function that drops a table of specified name from the wanted database.
     
     :param name: Name of the table to be dropped
     :type name: str
-    :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
-                     is already established no need to pass a parameter. Defaults to None
-    :type database: str, optional
-    :param reconnect: Boolean flag allowing establishing a connection to a different database. Defaults to False
-    :type reconnect: bool, optional
 
     :raises ValueError: Raised if table not found in the specified database.
 
     :return Void
     :rtype: None
     """
-    cur = get_cursor(database=database, reconnect=reconnect)
+    cur = get_cursor()
     checked_name = check(name)
 
     table_exists = bool(len(cur.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{checked_name}';").fetchall()))
@@ -218,7 +204,7 @@ def drop_table(name: str, database: str = None, reconnect: bool = False) -> None
     finalize_execution(cur)
 
 
-def add_table(name: str, columns: list[tuple[str, str]], database: str = None, reconnect: bool = False, reset: bool = False) -> None:
+def add_table(name: str, columns: list[tuple[str, str]], reset: bool = False) -> None:
     """Function for adding a table into a database. If the table already exists and reset kwarg is set to False, won't do
     anything. If reset is set to True the existing table will be removed and replaced by one with the specified schema.
 
@@ -226,11 +212,6 @@ def add_table(name: str, columns: list[tuple[str, str]], database: str = None, r
     :type name: str
     :param columns: The column names and type specifiers for the table as a list of tuples
     :type columns: list[tuple[str, str]]
-    :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
-                     is already established no need to pass a parameter. Defaults to None
-    :type database: str, optional
-    :param reconnect: Boolean flag allowing establishing a connection to a different database. Defaults to False
-    :type reconnect: bool, optional
     :param reset: Boolean flag specifying if an existing table with specified name should be replaced by a new \
                   one. Defaults to False.
     :type reset: bool, optional
@@ -238,12 +219,12 @@ def add_table(name: str, columns: list[tuple[str, str]], database: str = None, r
     :return: Void
     :rtype: None
     """
-    cur = get_cursor(database=database, reconnect=reconnect)
+    cur = get_cursor()
 
     column_str = ", ".join([f"{tup[0]} {tup[1]}" for tup in columns])
 
     if reset:
-        drop_table(name, database=database, reconnect=reconnect)
+        drop_table(name)
 
     cur.execute(f"CREATE TABLE IF NOT EXISTS {check(name)} ({check(column_str)});")
 
@@ -283,33 +264,28 @@ def initialize_database(table_names: list[str], table_columns: list[list[tuple[s
             database_tables = [tup[0] for tup in res.fetchall()]
 
             for table in database_tables:
-                drop_table(table, database=database, reconnect=reconnect)
+                drop_table(table)
 
         for tup in zip(table_names, table_columns):
-            add_table(*tup, database=database, reconnect=reconnect)
+            add_table(*tup)
 
         finalize_execution(cur)
 
 
-def insert_row(row_values: list[any], table_name: str, database: str = None, reconnect: bool = False) -> None:
+def insert_row(row_values: list[any], table_name: str) -> None:
     """Function for inserting a row into a table in a given database
 
     :param row_values: The values on the row, which are to be added. 
     :type row_values: list[any]
     :param table_name: The name of the table to which row is added
     :type table_name: str
-    :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
-                     is already established no need to pass a parameter. Defaults to None
-    :type database: str, optional
-    :param reconnect: Boolean flag allowing establishing a connection to a different database. Defaults to False
-    :type reconnect: bool, optional
 
     :raises ValueError: Raised if the passed values don't match the schema of the table
 
     :return: Void
     :rtype: None
     """
-    cur = get_cursor(database=database, reconnect=reconnect)
+    cur = get_cursor()
     value_str = ", ".join([f"'{value}'" for value in row_values])
 
     try:
@@ -321,7 +297,7 @@ def insert_row(row_values: list[any], table_name: str, database: str = None, rec
     finalize_execution(cur)
 
 
-def get_by_value(value: any, table_name: str, column_name: str, database: str = None, reconnect: bool = False) -> list[tuple[any, ...]]:
+def get_by_value(value: any, table_name: str, column_name: str) -> list[tuple[any, ...]]:
     """Function for accessing row(s) in a table by some key value for a column.
 
     :param value: They value by which rows are queried
@@ -330,16 +306,11 @@ def get_by_value(value: any, table_name: str, column_name: str, database: str = 
     :type table_name: str
     :param column_name: The name of the column in which the value is matched
     :type column_name: str
-    :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
-                     is already established no need to pass a parameter. Defaults to None
-    :type database: str, optional
-    :param reconnect: Boolean flag allowing establishing a connection to a different database. Defaults to False
-    :type reconnect: bool, optional
 
     :return: A list of tuples containing the values of the found rows
     :rtype: list[tuple[any, ...]]
     """
-    cur = get_cursor(database=database, reconnect=reconnect)
+    cur = get_cursor()
 
     try:
         res = cur.execute(f"SELECT * FROM {check(table_name)} WHERE {check(column_name)} = '{check(str(value))}'")
@@ -354,7 +325,7 @@ def get_by_value(value: any, table_name: str, column_name: str, database: str = 
     return rows
 
 
-def delete_by_value(value: any, table_name: str, column_name: str, database: str = None, reconnect: bool = False) -> None:
+def delete_by_value(value: any, table_name: str, column_name: str) -> None:
     """Function for deleting row(s) in a table by some value value for a column.
 
     :param value: They value by which rows are deleted
@@ -363,16 +334,11 @@ def delete_by_value(value: any, table_name: str, column_name: str, database: str
     :type table_name: str
     :param column_name: The name of the column in which the value is matched
     :type column_name: str
-    :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
-                     is already established no need to pass a parameter. Defaults to None
-    :type database: str, optional
-    :param reconnect: Boolean flag allowing establishing a connection to a different database. Defaults to False
-    :type reconnect: bool, optional
 
     :return: Void
     :rtype: None
     """
-    cur = get_cursor(database=database, reconnect=reconnect)
+    cur = get_cursor()
 
     try:
         res = cur.execute(f"DELETE FROM {check(table_name)} WHERE {check(column_name)} = '{check(str(value))}'")
@@ -385,8 +351,7 @@ def delete_by_value(value: any, table_name: str, column_name: str, database: str
     finalize_execution(cur)
 
 
-def update_by_value(value: any, value_tuple: tuple[str, any], table_name: str, column_name: str, 
-                  database: str = None, reconnect: bool = False) -> None:
+def update_by_value(value: any, value_tuple: tuple[str, any], table_name: str, column_name: str) -> None:
     """Function for updating row(s) in given table by some value for a column. If no row has the value
     does nothing.
 
@@ -398,16 +363,11 @@ def update_by_value(value: any, value_tuple: tuple[str, any], table_name: str, c
     :type table_name: str
     :param column_name: The name of the column in which thevalue is matched
     :type column_name: str
-    :param database: The path to the database or ":memory:" for a temporary database in RAM. If connection \
-                     is already established no need to pass a parameter. Defaults to None
-    :type database: str, optional
-    :param reconnect: Boolean flag allowing establishing a connection to a different database. Defaults to False
-    :type reconnect: bool, optional
 
     :return: Void
     :rtype: None
     """
-    cur = get_cursor(database=database, reconnect=reconnect)
+    cur = get_cursor()
 
     try:
         cur.execute(f"""UPDATE {check(table_name)} SET {check(value_tuple[0])} = '{check(str(value_tuple[1]))}' 

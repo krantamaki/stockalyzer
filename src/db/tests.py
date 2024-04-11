@@ -106,7 +106,7 @@ class TestDatabaseFunctions(unittest.TestCase):
 
         finalize_execution(cur)
 
-        self.assertTrue(check_database(["name1", "name2", "name3"], database=database, reconnect=True))
+        self.assertTrue(check_database(["name1", "name2", "name3"]))
         _delete_if_exists(database)
 
     def test_c_check_database_2(self):
@@ -120,7 +120,7 @@ class TestDatabaseFunctions(unittest.TestCase):
 
         finalize_execution(cur)
 
-        self.assertFalse(check_database(["name1", "name2"], database=database, reconnect=True, no_extras=True))
+        self.assertFalse(check_database(["name1", "name2"], no_extras=True))
         _delete_if_exists(database)
 
     def test_c_check_database_3(self):
@@ -133,7 +133,7 @@ class TestDatabaseFunctions(unittest.TestCase):
 
         finalize_execution(cur)
 
-        self.assertTrue(check_database(["name1", "name2"], database=database, reconnect=True, no_extras=True))
+        self.assertTrue(check_database(["name1", "name2"], no_extras=True))
         _delete_if_exists(database)
 
     def test_d_drop_table_1(self):
@@ -145,11 +145,11 @@ class TestDatabaseFunctions(unittest.TestCase):
         cur.execute(f"CREATE TABLE IF NOT EXISTS name2 (column2 TEXT);")
         cur.execute(f"CREATE TABLE IF NOT EXISTS name3 (column3 TEXT);")
 
-        drop_table("name3", database=database, reconnect=True)
+        drop_table("name3")
 
         finalize_execution(cur)
 
-        self.assertTrue(check_database(["name1", "name2"], database=database, reconnect=True, no_extras=True))
+        self.assertTrue(check_database(["name1", "name2"], no_extras=True))
         _delete_if_exists(database)
 
     def test_d_drop_table_2(self):
@@ -162,7 +162,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         cur.execute(f"CREATE TABLE IF NOT EXISTS name3 (column3 TEXT);")
 
         with self.assertRaises(ValueError):
-            drop_table("name4", database=database, reconnect=True)
+            drop_table("name4")
 
         finalize_execution(cur)
         _delete_if_exists(database)
@@ -171,22 +171,22 @@ class TestDatabaseFunctions(unittest.TestCase):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         get_connection(database=database, reconnect=True, generate=True)
 
-        add_table("name1", [("column1", "TEXT")], database=database, reconnect=True)
-        add_table("name2", [("column2", "TEXT")], database=database, reconnect=True)
+        add_table("name1", [("column1", "TEXT")])
+        add_table("name2", [("column2", "TEXT")])
 
-        self.assertTrue(check_database(["name1", "name2"], database=database, reconnect=True, no_extras=True))
+        self.assertTrue(check_database(["name1", "name2"], no_extras=True))
         _delete_if_exists(database)
 
     def test_e_add_table_2(self):
         database = _tmp_database + inspect.stack()[0][3] + ".db"
         get_connection(database=database, reconnect=True, generate=True)
 
-        add_table("name1", [("column1", "TEXT")], database=database, reconnect=True)
-        add_table("name2", [("column2", "TEXT")], database=database, reconnect=True)
+        add_table("name1", [("column1", "TEXT")])
+        add_table("name2", [("column2", "TEXT")])
 
-        add_table("name1", [("column1", "TEXT")], database=database, reconnect=True)
+        add_table("name1", [("column1", "TEXT")])
 
-        self.assertTrue(check_database(["name1", "name2"], database=database, reconnect=True, no_extras=True))
+        self.assertTrue(check_database(["name1", "name2"], no_extras=True))
         _delete_if_exists(database)
 
     def test_e_add_table_3(self):
@@ -194,15 +194,15 @@ class TestDatabaseFunctions(unittest.TestCase):
         con = get_connection(database=database, reconnect=True, generate=True)
         cur = con.cursor()
 
-        add_table("name1", [("column1", "TEXT")], database=database, reconnect=True)
-        add_table("name2", [("column2", "TEXT")], database=database, reconnect=True)
+        add_table("name1", [("column1", "TEXT")])
+        add_table("name2", [("column2", "TEXT")])
 
         cur.execute("INSERT INTO name1 VALUES('test')")
 
         rows = cur.execute("SELECT * FROM name1").fetchall()
         self.assertTrue(len(rows) == 1)
 
-        add_table("name1", [("column1", "TEXT")], database=database, reconnect=True, reset=True)
+        add_table("name1", [("column1", "TEXT")], reset=True)
 
         rows = cur.execute("SELECT * FROM name1").fetchall()
         self.assertTrue(len(rows) == 0)
@@ -213,7 +213,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1", "name2"], [[("column1", "TEXT")], [("column2", "TEXT")]],
                             database=database, reconnect=True)
         
-        self.assertTrue(check_database(["name1", "name2"], database=database, reconnect=True, no_extras=True))
+        self.assertTrue(check_database(["name1", "name2"], no_extras=True))
         _delete_if_exists(database)
     
     def test_f_initialize_database_2(self):
@@ -224,7 +224,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name3", "name4"], [[("column3", "TEXT")], [("column4", "TEXT")]],
                             database=database, reconnect=True)
         
-        self.assertTrue(check_database(["name1", "name2"], database=database, reconnect=True, no_extras=True))
+        self.assertTrue(check_database(["name1", "name2"], no_extras=True))
         _delete_if_exists(database)
 
     def test_f_initialize_database_3(self):
@@ -235,7 +235,7 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name3", "name4"], [[("column3", "TEXT")], [("column4", "TEXT")]],
                             database=database, reconnect=True, reset=True)
         
-        self.assertTrue(check_database(["name3", "name4"], database=database, reconnect=True, no_extras=True))
+        self.assertTrue(check_database(["name3", "name4"], no_extras=True))
         _delete_if_exists(database)
 
     def test_g_insert_row_1(self):
@@ -243,9 +243,9 @@ class TestDatabaseFunctions(unittest.TestCase):
         con = get_connection(database=database, reconnect=True, generate=True)
         cur = con.cursor()
 
-        add_table("name1", [("column1", "TEXT UNIQUE"), ("column2", "REAL")], database=database, reconnect=True)
-        insert_row(["test", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
+        add_table("name1", [("column1", "TEXT UNIQUE"), ("column2", "REAL")])
+        insert_row(["test", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
 
         rows = cur.execute("SELECT * FROM name1").fetchall()
         self.assertTrue(len(rows) == 2)
@@ -259,8 +259,8 @@ class TestDatabaseFunctions(unittest.TestCase):
                             database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-            insert_row(["test", 0.0], "name1", database=database, reconnect=True)
-            insert_row(["test2"], "name1", database=database, reconnect=True)
+            insert_row(["test", 0.0], "name1")
+            insert_row(["test2"], "name1")
 
         _delete_if_exists(database)
 
@@ -271,8 +271,8 @@ class TestDatabaseFunctions(unittest.TestCase):
                             database=database, reconnect=True)
 
         with self.assertRaises(ValueError):
-            insert_row(["test", 0.0], "name1", database=database, reconnect=True)
-            insert_row(["test", 1.0], "name1", database=database, reconnect=True)
+            insert_row(["test", 0.0], "name1")
+            insert_row(["test", 1.0], "name1")
 
         _delete_if_exists(database)
 
@@ -282,11 +282,11 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
-        rows = get_by_value("test1", "name1", "column1", database=database, reconnect=True)
+        rows = get_by_value("test1", "name1", "column1")
 
         self.assertTrue(len(rows) == 1)
         _delete_if_exists(database)
@@ -297,11 +297,11 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
-        rows = get_by_value(0.0, "name1", "column2", database=database, reconnect=True)
+        rows = get_by_value(0.0, "name1", "column2")
 
         self.assertTrue(len(rows) == 2)
         _delete_if_exists(database)
@@ -312,11 +312,11 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
-        rows = get_by_value(-1.0, "name1", "column2", database=database, reconnect=True)
+        rows = get_by_value(-1.0, "name1", "column2")
 
         self.assertTrue(len(rows) == 0)
         _delete_if_exists(database)
@@ -327,12 +327,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
         with self.assertRaises(ValueError):
-            get_by_value(-1.0, "name2", "column2", database=database, reconnect=True)
+            get_by_value(-1.0, "name2", "column2")
 
         _delete_if_exists(database)
 
@@ -342,12 +342,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
         with self.assertRaises(ValueError):
-            get_by_value(0.0, "name1", "column3", database=database, reconnect=True)
+            get_by_value(0.0, "name1", "column3")
 
         _delete_if_exists(database)
 
@@ -357,12 +357,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
-        delete_by_value("test1", "name1", "column1", database=database, reconnect=True)
-        rows = get_by_value("test1", "name1", "column1", database=database, reconnect=True)
+        delete_by_value("test1", "name1", "column1")
+        rows = get_by_value("test1", "name1", "column1")
 
         self.assertTrue(len(rows) == 0)
         _delete_if_exists(database)
@@ -373,12 +373,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
-        delete_by_value(0.0, "name1", "column2", database=database, reconnect=True)
-        rows = get_by_value(0.0, "name1", "column2", database=database, reconnect=True)
+        delete_by_value(0.0, "name1", "column2")
+        rows = get_by_value(0.0, "name1", "column2")
 
         self.assertTrue(len(rows) == 0)
         _delete_if_exists(database)
@@ -389,12 +389,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
-        delete_by_value(-1.0, "name1", "column2", database=database, reconnect=True)
-        rows = get_by_value(-1.0, "name1", "column2", database=database, reconnect=True)
+        delete_by_value(-1.0, "name1", "column2")
+        rows = get_by_value(-1.0, "name1", "column2")
 
         self.assertTrue(len(rows) == 0)
         _delete_if_exists(database)
@@ -405,12 +405,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
         with self.assertRaises(ValueError):
-            delete_by_value(-1.0, "name2", "column2", database=database, reconnect=True)
+            delete_by_value(-1.0, "name2", "column2")
 
         _delete_if_exists(database)
 
@@ -420,12 +420,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
         with self.assertRaises(ValueError):
-            delete_by_value(0.0, "name1", "column3", database=database, reconnect=True)
+            delete_by_value(0.0, "name1", "column3")
 
         _delete_if_exists(database)
 
@@ -435,12 +435,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
-        update_by_value("test1", ("column1", "test4"), "name1", "column1", database=database, reconnect=True)
-        rows = get_by_value("test4", "name1", "column1", database=database, reconnect=True)
+        update_by_value("test1", ("column1", "test4"), "name1", "column1")
+        rows = get_by_value("test4", "name1", "column1")
 
         self.assertTrue(len(rows) == 1)
         _delete_if_exists(database)
@@ -451,12 +451,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
-        update_by_value(1.0, ("column1", "test4"), "name1", "column2", database=database, reconnect=True)
-        rows = get_by_value("test4", "name1", "column1", database=database, reconnect=True)
+        update_by_value(1.0, ("column1", "test4"), "name1", "column2")
+        rows = get_by_value("test4", "name1", "column1")
 
         self.assertTrue(len(rows) == 1)
         _delete_if_exists(database)
@@ -467,12 +467,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
-        update_by_value(-1.0, ("column1", "test4"), "name1", "column2", database=database, reconnect=True)
-        rows = get_by_value("test4", "name1", "column1", database=database, reconnect=True)
+        update_by_value(-1.0, ("column1", "test4"), "name1", "column2")
+        rows = get_by_value("test4", "name1", "column1")
 
         self.assertTrue(len(rows) == 0)
 
@@ -484,12 +484,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
         with self.assertRaises(ValueError):
-            update_by_value(0.0, ("column1", "test4"), "name1", "column2", database=database, reconnect=True)
+            update_by_value(0.0, ("column1", "test4"), "name1", "column2")
 
         _delete_if_exists(database)
 
@@ -499,12 +499,12 @@ class TestDatabaseFunctions(unittest.TestCase):
         initialize_database(["name1"], [[("column1", "TEXT UNIQUE"), ("column2", "REAL")]],
                             database=database, reconnect=True)
         
-        insert_row(["test1", 0.0], "name1", database=database, reconnect=True)
-        insert_row(["test2", 1.0], "name1", database=database, reconnect=True)
-        insert_row(["test3", 0.0], "name1", database=database, reconnect=True)
+        insert_row(["test1", 0.0], "name1")
+        insert_row(["test2", 1.0], "name1")
+        insert_row(["test3", 0.0], "name1")
 
         with self.assertRaises(ValueError):
-            update_by_value(1.0, ("column1", "test4"), "name2", "column2", database=database, reconnect=True)
+            update_by_value(1.0, ("column1", "test4"), "name2", "column2")
 
         _delete_if_exists(database)
 
