@@ -34,7 +34,7 @@ The data once retrieved is stored in a database. The database consists of tables
   - marketCap: The market capitalization as INTEGER
   - eps: The earnings per share as REAL
   - PE: The price to earnings as REAL
-  - DE: The debt to earnings as REAL
+  - DE: The debt to equity as REAL
   - div: The dividend as REAL
   - divYield: The dividend yield as REAL
   - beta: The beta of the stock as a REAL
