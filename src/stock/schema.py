@@ -1,5 +1,7 @@
 """
 File containing the table specifications for the used database
+
+Note since many modules depend on the information here DO NOT change it
 """
 
 """
@@ -68,7 +70,7 @@ values should correspond to the ones in Yahoo Finance
 and thus used in the API
 """
 incomeStmt_map = {"ticker": {"spec": "TEXT PRIMARY KEY",
-                                 "name": "Ticker"},
+                             "name": "Ticker"},
                   "lastUpdate": {"spec": "TEXT NOT NULL",
                                   "name": "Last updated"},
                   "dateIndex": {"spec": "TEXT NOT NULL",
@@ -92,11 +94,11 @@ incomeStmt_map = {"ticker": {"spec": "TEXT PRIMARY KEY",
                   "pretaxIncome": {"spec": "TEXT",
                                    "name": "Pretax Income"},
                   "taxProvision": {"spec": "TEXT",
-                                    "name": "Tax Provision"},
+                                   "name": "Tax Provision"},
                   "efeinoTax": {"spec": "TEXT",
                                 "name": "Earnings from Equity Interest Net of Tax"},
                   "nics": {"spec": "TEXT",
-                            "name": "Net Income Common Stockholders"},
+                           "name": "Net Income Common Stockholders"},
                   "dilutedNI": {"spec": "TEXT",
                                 "name": "Diluted NI Available to Com Stockholders"},
                   "basicEPS": {"spec": "TEXT",

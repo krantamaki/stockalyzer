@@ -37,17 +37,17 @@ class abcAPI(ABC):
 
     # We should be able to retrieve the income statement for the underlying
     @abstractmethod
-    def income_statement(self) -> pd.DataFrame:
+    def income_statement(self, altkeys: dict[str, str] = None) -> pd.DataFrame:
         pass
 
     # We should be able to retrieve the balance sheet for the underlying
     @abstractmethod
-    def balance_sheet(self) -> pd.DataFrame:
+    def balance_sheet(self, altkeys: dict[str, str] = None) -> pd.DataFrame:
         pass
 
     # We should be able to retrieve the cash flow statement for the underlying
     @abstractmethod
-    def cash_flow_statement(self) -> pd.DataFrame:
+    def cash_flow_statement(self, altkeys: dict[str, str] = None) -> pd.DataFrame:
         pass
     
     # We should be able to retrieve the value of an option for some given strike
@@ -56,9 +56,15 @@ class abcAPI(ABC):
     def option_value(self, strike: float, maturity: np.datetime64, type: str) -> float:
         pass
 
-    # We should be able to retrieve the values of all available options as dictionary
-    # from the option symbol to the option value
+    # We should be able to retrieve the values of all available options (of a given type) 
+    # as dictionary from the option symbol to the option value
     @abstractmethod
-    def options(self) -> dict[str, float]:
+    def all_options(self, type: str) -> dict[str, float]:
+        pass
+
+    # We should be able to retrieve the values of all available options for a given maturity 
+    # as dictionary from the strike to the option value
+    @abstractmethod
+    def options_by_maturity(self, maturity: np.datetime64, type: str) -> dict[float, float]:
         pass
     
