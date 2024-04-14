@@ -10,7 +10,6 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import requests
-from api_abc import abcAPI
 
 
 # We use Pythons logging library to control and redirect our outputs.
@@ -20,6 +19,7 @@ _logger = logging.getLogger(__name__)
 
 # After we have defined the logger we can import other modules
 from stock.schema import *
+from stock.tools import *
 from stock.stockAPI.api_abc import abcAPI
 
 
@@ -42,7 +42,8 @@ class YahooAPI(abcAPI):
         
         try:
             self.__info = self.__yfTicker.info
-        except TypeError:
+            self.__info["quoteType"]
+        except KeyError:
             _logger.error(f"Invalid ticker symbol {ticker} given!")
             raise ValueError(f"Invalid ticker symbol {ticker} given!")
         except requests.exceptions.HTTPError as e:
@@ -50,8 +51,8 @@ class YahooAPI(abcAPI):
             raise ValueError(f"Could not connect to Yahoo Finance API: {e}! Consider updating yfinance library.")
         
         if self.__info["quoteType"] != "EQUITY":
-            _logger.error(f"Given ticker {ticker} is of impoper type {self.__info["quoteType"]}!")
-            raise ValueError(f"Given ticker {ticker} is of impoper type {self.__info["quoteType"]}!")
+            _logger.error(f"Given ticker {ticker} is of impoper type {self.__info['quoteType']}!")
+            raise ValueError(f"Given ticker {ticker} is of impoper type {self.__info['quoteType']}!")
         
         self.unit = "base"  # Alternatives thousands, millions ... but Yahoo provides "dollar" values
 
@@ -94,7 +95,10 @@ class YahooAPI(abcAPI):
 
         value_tups = []
         for col, info in info_tup:
-            value_tups.append((col, self.__info[info]))
+            if info is not None:
+                value_tups.append((col, self.__info[info]))
+            else:
+                value_tups.append((col, None))
 
         value_dict = dict(value_tups)
 
@@ -116,18 +120,27 @@ class YahooAPI(abcAPI):
         :param colkeys: The column key dictionary for the API. Defaults to None
         :type colkeys: dict[str, str], optional
 
+        :raises ValueError: Raised if any of the given column keys is not present in the DataFrame columns
+
         :return: DataFrame containing the wanted history
         :rtype: pd.DataFrame
         """
-        hist = self.__yfTicker.history(start=str(start_date)[:10], end=str(end_date)[:10])
+        valid_start = strdate(start_date)
+        valid_end = strdate(end_date)
+
+        hist = self.__yfTicker.history(start=valid_start, end=valid_end)
 
         if colkeys is not None:
+            if not set(colkeys.values()).issubset(set(hist.columns)):
+                _logger.error(f"Invalid column keys provided!")
+                raise ValueError(f"Invalid column keys provided!")
+            
             hist = hist[list(colkeys.values())]
             hist.columns = list(colkeys.keys())
        
         return hist
     
-    def income_statement(self, altkeys: dict[str, str] = None) -> dict[str, any]:
+    def income_statement(self, altkeys: dict[str, str] = None) -> pd.DataFrame:
         """Method for accessing the income statement for the stock. The basic information
         is defined as the column values for the incomeStmt table (see README or schema.py) columns
         "totRevenue" onwards. If some of the information cannot be reached the value will default 
@@ -147,7 +160,7 @@ class YahooAPI(abcAPI):
         # Due to the naming convention we can just retrieve the "name" values 
         # from incomeStmt_map as keys for Yahoo Finance API
         financial_keys = [incomeStmt_map[key]["name"] for key in incomeStmt_map.keys()]
-        db_keys = [incomeStmt_map.keys()]
+        db_keys = list(incomeStmt_map.keys())
 
         if altkeys is not None:
             if not set(db_keys).issubset(set(altkeys.keys())):
@@ -156,7 +169,7 @@ class YahooAPI(abcAPI):
 
             db_keys = [altkeys[key] for key in db_keys]
 
-        financial_tup = zip(db_keys, financial_keys)
+        financial_tup = list(zip(db_keys, financial_keys))
         financials = self.__yfTicker.financials
 
         value_tups = []
@@ -174,7 +187,7 @@ class YahooAPI(abcAPI):
 
         return value_df
     
-    def balance_sheet(self, altkeys: dict[str, str] = None) -> dict[str, any]:
+    def balance_sheet(self, altkeys: dict[str, str] = None) -> pd.DataFrame:
         """Method for accessing the balance sheet for the stock. The basic information
         is defined as the column values for the balanceSheet table (see README or schema.py) columns
         "totAssets" onwards. If some of the information cannot be reached the value will default 
@@ -194,7 +207,7 @@ class YahooAPI(abcAPI):
         # Due to the naming convention we can just retrieve the "name" values 
         # from balanceSheet_map as keys for Yahoo Finance API
         balanceSheet_keys = [balanceSheet_map[key]["name"] for key in balanceSheet_map.keys()]
-        db_keys = [balanceSheet_map.keys()]
+        db_keys = list(balanceSheet_map.keys())
 
         if altkeys is not None:
             if not set(db_keys).issubset(set(altkeys.keys())):
@@ -203,7 +216,7 @@ class YahooAPI(abcAPI):
 
             db_keys = [altkeys[key] for key in db_keys]
 
-        balanceSheet_tup = zip(db_keys, balanceSheet_keys)
+        balanceSheet_tup = list(zip(db_keys, balanceSheet_keys))
         balanceSheet = self.__yfTicker.balance_sheet
 
         value_tups = []
@@ -221,7 +234,7 @@ class YahooAPI(abcAPI):
 
         return value_df
     
-    def cash_flow_statement(self, altkeys: dict[str, str] = None) -> dict[str, any]:
+    def cash_flow_statement(self, altkeys: dict[str, str] = None) -> pd.DataFrame:
         """Method for accessing the cash flow statement for the stock. The basic information
         is defined as the column values for the balanceSheet table (see README or schema.py) columns
         "opCashFlow" onwards. If some of the information cannot be reached the value will default 
@@ -241,7 +254,7 @@ class YahooAPI(abcAPI):
         # Due to the naming convention we can just retrieve the "name" values 
         # from cashFlowStmt_map as keys for Yahoo Finance API
         cashFlow_keys = [cashFlowStmt_map[key]["name"] for key in cashFlowStmt_map.keys()]
-        db_keys = [cashFlowStmt_map.keys()]
+        db_keys = list(cashFlowStmt_map.keys())
 
         if altkeys is not None:
             if not set(db_keys).issubset(set(altkeys.keys())):
@@ -250,7 +263,7 @@ class YahooAPI(abcAPI):
 
             db_keys = [altkeys[key] for key in db_keys]
 
-        cashFlow_tup = zip(db_keys, cashFlow_keys)
+        cashFlow_tup = list(zip(db_keys, cashFlow_keys))
         cashFlow = self.__yfTicker.cashflow
 
         value_tups = []
@@ -285,7 +298,7 @@ class YahooAPI(abcAPI):
         :rtype: float
         """
         maturities = self.__yfTicker.options
-        if maturity not in maturities:
+        if strdate(maturity) not in maturities:
             _logger.error(f"No options found for maturity {maturity}!")
             raise ValueError(f"No options found for maturity {maturity}!")
         
@@ -309,6 +322,7 @@ class YahooAPI(abcAPI):
     
     def all_options(self, type: str) -> dict[str, float]:
         """Method for accessing the values of all options of given type ('call' or 'put'). 
+        Note that this method returns an empty dictionary if no options were found
 
         :param type: The type of option. Alternatives are 'call' and 'put'
         :type type: str
@@ -355,7 +369,7 @@ class YahooAPI(abcAPI):
         :rtype: dict[float, float]
         """
         maturities = self.__yfTicker.options
-        if maturity not in maturities:
+        if strdate(maturity) not in maturities:
             _logger.error(f"No options found for maturity {maturity}!")
             raise ValueError(f"No options found for maturity {maturity}!")
         
