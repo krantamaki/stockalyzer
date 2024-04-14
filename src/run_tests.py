@@ -31,9 +31,11 @@ if __name__ == "__main__":
 # Import the test cases
 from db.tests import TestDatabaseFunctions
 from config.tests import TestConfigFunctions
+from stock.stockAPI.tests import TestAPIFunctions
 
-test_map = {"db": TestDatabaseFunctions, 
-            "config": TestConfigFunctions}
+test_map = {"db": TestDatabaseFunctions,
+            "config": TestConfigFunctions,
+            "stockAPI": TestAPIFunctions}
 
 
 # Function for loading tests from a given module
@@ -77,6 +79,8 @@ def main():
             suite.addTest(load_tests_from_module('db', loader))
         if args['config']:
             suite.addTest(load_tests_from_module('config', loader))
+        if args['stockAPI']:
+            suite.addTest(load_tests_from_module('stockAPI', loader))
 
     runner = unittest.TextTestRunner()
     runner.run(suite)
