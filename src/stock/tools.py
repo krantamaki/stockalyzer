@@ -3,6 +3,12 @@ Module for simple helper functions used by the classes
 """
 from __future__ import annotations
 import numpy as np
+import logging
+
+
+# We use Pythons logging library to control and redirect our outputs.
+# To this end be need to define the Logger object
+_logger = logging.getLogger(__name__)
 
 
 def map_to_None(keys: list[str]) -> dict[str, None]:
@@ -31,4 +37,37 @@ def strdate(date: np.datetime64) -> str:
     return str(np.datetime64(date, 'D'))[:10]
 
 
-__all__ = ["map_to_None", "strdate"]
+def symbol_to_params(symbol: str) -> tuple[str, str, np.datetime64, float]:
+    """Function that reads from an option symbol the contributing parts i.e.
+    the ticker symbol, option type ('call', 'put'), maturity and strike price.
+    
+    :params symbol: The (standard) option symbol of format <ticker><maturity><type><strike>
+    :type symbol: str
+
+    :raises ValueError: Raised if the symbol is of improper format
+    
+    :return: Tuple containing the ticker symbol, type, maturity and strike
+    :rtype: tuple[str, str, np.datetime64, float]
+    """
+    if len(symbol) <= 15:
+        _logger.error(f"Option symbol {symbol} is too short!")
+        raise ValueError(f"Option symbol {symbol} is too short!")
+
+    strike = float(f"{symbol[-8:-3]}.{symbol[-3:]}")
+
+    opt_type = ""
+    if symbol[-9] == 'C':
+        opt_type = "call"
+    elif symbol[-9] == 'P':
+        opt_type = "put"
+    else:
+        _logger.error(f"Improper option type {symbol[-9]}!")
+        raise ValueError(f"Improper option type {symbol[-9]}!")
+        
+    maturity = np.datetime64(f"20{symbol[-15:-13]}-{symbol[-13:-11]}-{symbol[-11:-9]}", 'D')
+    ticker = symbol[:-15]
+
+    return (ticker, opt_type, maturity, strike)
+
+
+__all__ = ["map_to_None", "strdate", "symbol_to_params"]
