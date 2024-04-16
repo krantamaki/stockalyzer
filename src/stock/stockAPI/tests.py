@@ -12,9 +12,7 @@ if __name__ == "__main__":
     raise RuntimeError(f"The tests for stockAPI module needs to be run from src directory!")
 
 from stock.schema import *
-
-# Add here the APIs for testing
-from stock.stockAPI.yahoo_api import *
+from stock.stockAPI import *
 
 # Rename the API of interest for testing
 TestAPI = YahooAPI
