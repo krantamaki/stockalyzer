@@ -31,11 +31,11 @@ if __name__ == "__main__":
 # Import the test cases
 from db.tests import TestDatabaseFunctions
 from config.tests import TestConfigFunctions
-from stock.stockAPI.tests import TestAPIFunctions
+from stock.stockAPI.tests import TestAPIMethods
 
 test_map = {"db": TestDatabaseFunctions,
             "config": TestConfigFunctions,
-            "stockAPI": TestAPIFunctions}
+            "stockAPI": TestAPIMethods}
 
 
 # Function for loading tests from a given module

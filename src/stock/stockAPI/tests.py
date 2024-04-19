@@ -1,7 +1,7 @@
 """
-Unit tests for most of the functions present in stockAPI module
+Unit tests for most of the API methods present in stockAPI module
 
-...
+The tests should be ran from the src directory
 """
 import unittest
 import numpy as np
@@ -18,7 +18,7 @@ from stock.stockAPI import *
 TestAPI = YahooAPI
 
 
-class TestAPIFunctions(unittest.TestCase):
+class TestAPIMethods(unittest.TestCase):
 
     def test_a_init_1(self):
         TestAPI("AAPL")
