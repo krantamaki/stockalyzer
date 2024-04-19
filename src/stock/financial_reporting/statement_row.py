@@ -1,5 +1,7 @@
 """
 Module holding the class implementation for a row in a financial statement
+
+Code using this module needs to be ran from the src directory
 """
 from __future__ import annotations
 from typing import Callable
@@ -12,6 +14,9 @@ from scipy.optimize import curve_fit
 # We use Pythons logging library to control and redirect our outputs.
 # To this end be need to define the Logger object
 _logger = logging.getLogger(__name__)
+
+
+from stock.tools import r_squared
 
 
 class StatementRow():
@@ -159,138 +164,108 @@ class StatementRow():
         """
         return np.array(list(self.__value_dict.values())).std()
     
-    def risk_averse_pred(self, n_predictions: int = 1, base: float = np.e) -> np.ndarray[float]:
-        """Method for making predictions from the existing values. This method fits an risk
-        averse (concave) function. The function is a logarithm of base 'base' of form:
+    def predict(self, n_predictions: int = 1, func: str = "linear") -> np.ndarray[float]:
+        """Method for making predictions from the existing values. Depending on the chosen
+        'func' kwarg value there is three different functions that can be fitted to the values.
+        The options are:
 
-            y = a + b * log(c * x)
+            'linear' - fits a linear function of form
+                y = bx + a
 
-        One can consider the chosen function to be equivalent to the utility function from Expected 
-        Utility Theorem in Decision Analysis. Note that for the fitting to work the values must 
-        have a general increasing trend.
+            'exponential' - fits an exponential function of form
+                y = a * \exp{bx}
 
-        :param n_predictions: The number of predictions made. These will be spaced as the existing \
-                              values are. Defaults to 1
-        :type n_predictions: int, optional
-        :param base: The base of the logarithm used. Defaults to e (natural logarithm)
-        :type base: float, optional
+            'logarithmic' - fits a logarithmic function of form
+                y = a * \ln(bx)
 
-        :raises RuntimeError : Raised if fitting was not successful
+        These can be considered to provide different risk attitudes (risk neutral, seeking and 
+        averse).
 
-        :return: The made predictions in an array
-        :rtype: np.ndarray[float]
-        """
-        # Function to be fitted
-        def log_func(x, a, b, c):
-            return a * (np.log(c * x) / np.log(base)) + b
-        
-        y_data = np.flip(np.array(list(self.__value_dict.values())))
-        x_data = np.flip(np.array(list(self.__value_dict.keys())).astype(int))
+        Of these exponential function has the best interpretation from the 
+        mathematical view point. If we assume the values of this row to follow geometric
+        Brownian motion
 
-        x_diff = int(np.diff(x_data).mean())
+            dX_t = \mu X_t dt + \sigma X_t dB_t
 
-        try:
-          popt, _ = curve_fit(log_func, x_data, y_data, p0=(0, 1, 1))
-        except RuntimeError:
-            _logger.error(f"Could not fit a curve to the values: {y_data}!")
-            raise RuntimeError(f"Could not fit a curve to the values: {y_data}!")
+        The future value can be shown to be
 
-        ret_arr = []
-        for i in range(1, n_predictions + 1):
-            ret_arr.append(log_func(x_data[-1] + i * x_diff, *popt))
-        
-        return np.array(ret_arr)
-    
-    def risk_neutral_pred(self, n_predictions: int = 1) -> np.ndarray[float]:
-        """Method for making predictions from the existing values. This method fits an risk
-        neutral (linear) function. The function is of form:
+            X_t = X_0 \exp{(\mu - \sigma^2 / 2)t + \sigma B_t}
 
-            y = a * x + b
-
-        One can consider the chosen function to be equivalent to the utility function from Expected 
-        Utility Theorem in Decision Analysis. 
+        Which the parameters in the fitted function should imitate.
 
         :param n_predictions: The number of predictions made. These will be spaced as the existing \
                               values are. Defaults to 1
         :type n_predictions: int, optional
+        :param func: The function type to be fitted. Choices are 'linear', 'exponential' and 
+                     'logarithmic'. Defaults to 'linear'
+        :type func: str, optional
 
-        :raises RuntimeError : Raised if fitting was not successful
+        :raises ValueError: Raised if invalid value passed
+        :raises RuntimeError: Raised if fitting was not successful
 
         :return: The made predictions in an array
         :rtype: np.ndarray[float]
         """
-        # Function to be fitted
+        # The functions to be fitted
         def lin_func(x, a, b):
             return a * x + b
         
-        y_data = np.flip(np.array(list(self.__value_dict.values())))
-        x_data = np.flip(np.array(list(self.__value_dict.keys())).astype(int))
+        def exp_func(x, a, b):
+            return a * np.exp(b * x)
+        
+        def log_func(x, a, b):
+            return a * np.log(b * x)
+        
+        func_map = {"linear": lin_func,
+                    "exponential": exp_func,
+                    "logarithmic": log_func}
+        
+        try:
+            used_func = func_map[func.lower()]
+        except KeyError:
+            _logger.error(f"Invalid function type {func} passed!")
+            raise KeyError(f"Invalid function type {func} passed!")
 
-        x_diff = int(np.diff(x_data).mean())
+        y_data = np.flip(np.array(list(self.__value_dict.values())))
+
+        date_data = np.flip(np.array(list(self.__value_dict.keys())).astype(int))
+        x_diff = int(np.diff(date_data).mean())
+        
+        x_data = np.linspace(1, x_diff * len(y_data), len(y_data))
+
+        # These are mainly useful for the exponential function
+        init_params = [y_data[0], 1e-3]
 
         try:
-          popt, _ = curve_fit(lin_func, x_data, y_data, p0=(1, 0))
+            popt, _ = curve_fit(used_func, x_data, y_data, p0=init_params)
+            _logger.debug(f"Found parameters for {func} function are: {popt} (row {self.__name})")
         except RuntimeError:
-            _logger.error(f"Could not fit a curve to the values: {y_data}!")
-            raise RuntimeError(f"Could not fit a curve to the values: {y_data}!")
+            _logger.error(f"Could not fit a(n) {func} curve to the values: {y_data}! (row {self.__name})")
+            raise RuntimeError(f"Could not fit a(n) {func} curve to the values: {y_data}! (row {self.__name})")
+        
+        # Compute the R-squared value for the goodness of fit
+        y_fit = used_func(x_data, *popt)
+
+        r2 = r_squared(y_data, y_fit)
+        _logger.info(f"R-squared value for {func} function: {r2:.3f} (row {self.__name})")
 
         ret_arr = []
         for i in range(1, n_predictions + 1):
-            ret_arr.append(lin_func(x_data[-1] + i * x_diff, *popt))
+            ret_arr.append(used_func(x_data[-1] + i * x_diff, *popt))
         
         return np.array(ret_arr)
     
-    def risk_seeking_pred(self, n_predictions: int = 1, base: float = np.e) -> np.ndarray[float]:
-        """Method for making predictions from the existing values. This method fits an risk
-        seeking (convex) function. The function is an exponential of base 'base' of form:
-
-            y = a + b * <base>^(c * x)
-
-        One can consider the chosen function to be equivalent to the utility function from Expected 
-        Utility Theorem in Decision Analysis. Note that for the fitting to work the values must 
-        have a general increasing trend.
-
-        :param n_predictions: The number of predictions made. These will be spaced as the existing \
-                              values are. Defaults to 1
-        :type n_predictions: int, optional
-        :param base: The base of the exponetional used. Defaults to e 
-        :type base: float, optional
-
-        :raises RuntimeError : Raised if fitting was not successful
-
-        :return: The made predictions in an array
-        :rtype: np.ndarray[float]
-        """
-        # Function to be fitted
-        def exp_func(x, a, b, c):
-            return a * np.power(base, c * x) + b
-        
-        y_data = np.flip(np.array(list(self.__value_dict.values())))
-        x_data = np.flip(np.array(list(self.__value_dict.keys())).astype(int))
-
-        x_diff = int(np.diff(x_data).mean())
-
-        try:
-            popt, pcov = curve_fit(exp_func, x_data, y_data, p0=(1/x_diff, 0, 1/x_diff))
-            print(pcov)
-        except RuntimeError:
-            _logger.error(f"Could not fit a curve to the values: {y_data}!")
-            raise RuntimeError(f"Could not fit a curve to the values: {y_data}!")
-
-        ret_arr = []
-        for i in range(1, n_predictions + 1):
-            ret_arr.append(exp_func(x_data[-1] + i * x_diff, *popt))
-        
-        return np.array(ret_arr)
-    
-    def custom_pred(self, func: Callable, n_predictions: int = 1) -> np.ndarray[float]:
-        """Method for making predictions from the existing values. This method allows for arbitraty
+    def custom_predict(self, func: Callable, 
+                       init_params: tuple[float, ...] = None, n_predictions: int = 1) -> np.ndarray[float]:
+        """Method for making predictions from the existing values. This method allows for arbitrary
         function to be fitted. One can consider the chosen function to be equivalent to the utility 
         function from Expected Utility Theorem in Decision Analysis.
 
         :param func: The function to be fitted. The first parameter should be a float. Other \
                      (arbitrary amount) of parameters are then optimized for.
         :type func: Callable
+        :param init_params: The initial guess passed to the optimizer. Defaults to None (ones used)
+        :type init_params: tuple[float, ...], optional
         :param n_predictions: The number of predictions made. These will be spaced as the existing \
                               values are. Defaults to 1
         :type n_predictions: int, optional
@@ -301,15 +276,24 @@ class StatementRow():
         :rtype: np.ndarray[float]
         """
         y_data = np.flip(np.array(list(self.__value_dict.values())))
-        x_data = np.flip(np.array(list(self.__value_dict.keys())).astype(int))
 
-        x_diff = int(np.diff(x_data).mean())
+        date_data = np.flip(np.array(list(self.__value_dict.keys())).astype(int))
+        x_diff = int(np.diff(date_data).mean())
+        
+        x_data = np.linspace(1, x_diff * len(y_data), len(y_data))
 
         try:
-          popt, _ = curve_fit(func, x_data, y_data)
+            popt, _ = curve_fit(func, x_data, y_data, p0=init_params)
+            _logger.debug(f"Found parameters for the custom function are: {popt}")
         except RuntimeError:
             _logger.error(f"Could not fit a curve to the values: {y_data}!")
             raise RuntimeError(f"Could not fit a curve to the values: {y_data}!")
+        
+        # Compute the R-squared value for the goodness of fit
+        y_fit = func(x_data, *popt)
+        
+        r2 = r_squared(y_data, y_fit)
+        _logger.info(f"R-squared value for custom function: {r2:.3f} (row {self.__name})")
 
         ret_arr = []
         for i in range(1, n_predictions + 1):

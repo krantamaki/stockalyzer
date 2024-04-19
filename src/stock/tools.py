@@ -70,4 +70,24 @@ def symbol_to_params(symbol: str) -> tuple[str, str, np.datetime64, float]:
     return (ticker, opt_type, maturity, strike)
 
 
-__all__ = ["map_to_None", "strdate", "symbol_to_params"]
+def r_squared(y_data: np.ndarray[float], y_fit: np.ndarray[float]) -> float:
+    """Simple function that computes the coefficient of determination i.e.
+    r-squared value
+
+    :param y_data: The original datapoints
+    :type y_data: numpy.ndarray[float]
+    :param y_data: The fitted datapoints
+    :type y_data: numpy.ndarray[float]
+    
+    :return: The R-squared value
+    :rtype: float
+    """
+    res = np.sum((y_data - y_fit) ** 2)            # Residual sum of squares
+    tot = np.sum((y_data - np.mean(y_data)) ** 2)  # total sum of squares
+
+    r2 = 1 - (res / tot)
+
+    return r2
+
+
+__all__ = ["map_to_None", "strdate", "symbol_to_params", "r_squared"]
