@@ -53,8 +53,6 @@ class YahooAPI(abcAPI):
         if self.__info["quoteType"] != "EQUITY":
             _logger.error(f"Given ticker {ticker} is of impoper type {self.__info['quoteType']}!")
             raise ValueError(f"Given ticker {ticker} is of impoper type {self.__info['quoteType']}!")
-        
-        self.unit = "base"  # Alternatives thousands, millions ... but Yahoo provides "dollar" values
 
     def description(self) -> str:
         """Method for accessing a description of the company.
