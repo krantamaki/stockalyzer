@@ -105,18 +105,20 @@ class TestAPIMethods(unittest.TestCase):
 
     def test_e_income_statement_4(self):
         db_keys = list(incomeStmt_map.keys())
+        statement_start = db_keys.index('totRevenue')
 
         aapl = TestAPI("AAPL")
-        self.assertListEqual(list(aapl.income_statement().columns), db_keys[4:])
+        self.assertListEqual(list(aapl.income_statement().columns), db_keys[statement_start:])
 
     def test_e_income_statement_5(self):
         financial_keys = [incomeStmt_map[key]["name"] for key in incomeStmt_map.keys()]
         db_keys = list(incomeStmt_map.keys())
+        statement_start = db_keys.index('totRevenue')
 
         altkeys = dict(zip(db_keys, financial_keys))
 
         aapl = TestAPI("AAPL")
-        self.assertListEqual(list(aapl.income_statement(altkeys=altkeys).columns), financial_keys[4:])
+        self.assertListEqual(list(aapl.income_statement(altkeys=altkeys).columns), financial_keys[statement_start:])
 
     def test_f_balance_sheet_1(self):
         aapl = TestAPI("AAPL")
@@ -132,18 +134,20 @@ class TestAPIMethods(unittest.TestCase):
 
     def test_f_balance_sheet_4(self):
         db_keys = list(balanceSheet_map.keys())
+        statement_start = db_keys.index('totAssets')
 
         aapl = TestAPI("AAPL")
-        self.assertListEqual(list(aapl.balance_sheet().columns), db_keys[4:])
+        self.assertListEqual(list(aapl.balance_sheet().columns), db_keys[statement_start:])
 
     def test_f_balance_sheet_5(self):
         balanceSheet_keys = [balanceSheet_map[key]["name"] for key in balanceSheet_map.keys()]
         db_keys = list(balanceSheet_map.keys())
+        statement_start = db_keys.index('totAssets')
 
         altkeys = dict(zip(db_keys, balanceSheet_keys))
 
         aapl = TestAPI("AAPL")
-        self.assertListEqual(list(aapl.balance_sheet(altkeys=altkeys).columns), balanceSheet_keys[4:])
+        self.assertListEqual(list(aapl.balance_sheet(altkeys=altkeys).columns), balanceSheet_keys[statement_start:])
 
     def test_g_cash_flow_statement_1(self):
         aapl = TestAPI("AAPL")
@@ -159,18 +163,20 @@ class TestAPIMethods(unittest.TestCase):
 
     def test_g_cash_flow_statement_4(self):
         db_keys = list(cashFlowStmt_map.keys())
+        statement_start = db_keys.index('opCashFlow')
 
         aapl = TestAPI("AAPL")
-        self.assertListEqual(list(aapl.cash_flow_statement().columns), db_keys[4:])
+        self.assertListEqual(list(aapl.cash_flow_statement().columns), db_keys[statement_start:])
 
     def test_g_cash_flow_statement_5(self):
         cashFlow_keys = [cashFlowStmt_map[key]["name"] for key in cashFlowStmt_map.keys()]
         db_keys = list(cashFlowStmt_map.keys())
+        statement_start = db_keys.index('opCashFlow')
 
         altkeys = dict(zip(db_keys, cashFlow_keys))
 
         aapl = TestAPI("AAPL")
-        self.assertListEqual(list(aapl.cash_flow_statement(altkeys=altkeys).columns), cashFlow_keys[4:])
+        self.assertListEqual(list(aapl.cash_flow_statement(altkeys=altkeys).columns), cashFlow_keys[statement_start:])
 
     def test_h_all_options_1(self):
         aapl = TestAPI("AAPL")
