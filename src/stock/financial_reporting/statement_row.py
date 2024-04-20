@@ -58,15 +58,15 @@ class StatementRow():
         """Method for the string representation of the object.
         """
         if len(self.__value_dict) == 0:
-            return f"{self.__name}: "
+            return f"{self.__name}:"
 
         value_row = f"{self.__name}:"
         index_row = " " * len(value_row)
 
         for date, value in self.__value_dict.items():
             width = max(len(str(value)), len(str(date)))
-            index_row += " | " + f"{str(date).center(width)}"
-            value_row += " | " + f"{str(value).center(width)}"
+            index_row += " | " + str(date).center(width)
+            value_row += " | " + str(value).center(width)
 
         return f"{index_row} |\n{value_row} |"
     
