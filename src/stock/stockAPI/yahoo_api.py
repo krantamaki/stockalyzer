@@ -103,7 +103,7 @@ class YahooAPI(abcAPI):
         value_dict = dict(value_tups)
 
         value_dict[db_keys[0]] = self.__ticker
-        value_dict[db_keys[1]] = str(np.datetime64('today', 'D'))[:10]
+        value_dict[db_keys[1]] = str(np.datetime64('today', 'D'))
 
         return value_dict
     
@@ -162,6 +162,10 @@ class YahooAPI(abcAPI):
         financial_keys = [incomeStmt_map[key]["name"] for key in incomeStmt_map.keys()]
         db_keys = list(incomeStmt_map.keys())
 
+        # 'totRevenue' will be the first column of the actual income statement values.
+        # So find it's index for later use
+        statement_start = db_keys.index('totRevenue')
+
         if altkeys is not None:
             if not set(db_keys).issubset(set(altkeys.keys())):
                 _logger.error(f"Alternative keys must contain all of the column names!")
@@ -173,7 +177,7 @@ class YahooAPI(abcAPI):
         financials = self.__yfTicker.financials
 
         value_tups = []
-        for col, financial in financial_tup[4:]:
+        for col, financial in financial_tup[statement_start:]:
             try:
                 row = financials.loc[[financial]]
             except KeyError:
@@ -209,6 +213,10 @@ class YahooAPI(abcAPI):
         balanceSheet_keys = [balanceSheet_map[key]["name"] for key in balanceSheet_map.keys()]
         db_keys = list(balanceSheet_map.keys())
 
+        # 'totAssets' will be the first column of the actual balance sheet values.
+        # So find it's index for later use
+        statement_start = db_keys.index('totAssets')
+
         if altkeys is not None:
             if not set(db_keys).issubset(set(altkeys.keys())):
                 _logger.error(f"Alternative keys must contain all of the column names!")
@@ -220,7 +228,7 @@ class YahooAPI(abcAPI):
         balanceSheet = self.__yfTicker.balance_sheet
 
         value_tups = []
-        for col, financial in balanceSheet_tup[4:]:
+        for col, financial in balanceSheet_tup[statement_start:]:
             try:
                 row = balanceSheet.loc[[financial]]
             except KeyError:
@@ -256,6 +264,10 @@ class YahooAPI(abcAPI):
         cashFlow_keys = [cashFlowStmt_map[key]["name"] for key in cashFlowStmt_map.keys()]
         db_keys = list(cashFlowStmt_map.keys())
 
+        # 'opCashFlow' will be the first column of the actual balance sheet values.
+        # So find it's index for later use
+        statement_start = db_keys.index('opCashFlow')
+
         if altkeys is not None:
             if not set(db_keys).issubset(set(altkeys.keys())):
                 _logger.error(f"Alternative keys must contain all of the column names!")
@@ -267,7 +279,7 @@ class YahooAPI(abcAPI):
         cashFlow = self.__yfTicker.cashflow
 
         value_tups = []
-        for col, financial in cashFlow_tup[4:]:
+        for col, financial in cashFlow_tup[statement_start:]:
             try:
                 row = cashFlow.loc[[financial]]
             except KeyError:
