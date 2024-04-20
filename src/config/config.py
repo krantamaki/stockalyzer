@@ -85,6 +85,14 @@ def configure(config_file: str = "config.ini", reconfigure: bool = False, save_o
         raise ValueError(f"Invalid configuration file {config_file} passed!")
     
 
+def config_done() -> bool:
+    """Function that checks if a configuration file has been read.
+
+    :return: Boolean telling if a configuration file has been read
+    :rtype: bool
+    """
+    return _config is not None
+
 
 def get_value(section: str, key: str) -> any:
     """Function for accessing a value by section name and key from the config file
@@ -95,10 +103,15 @@ def get_value(section: str, key: str) -> any:
     :type key: str
 
     :raises ValueError: Raised if invalid section name or key is passed
+    :raises RuntimeError: Raised if no configuration file has been read
 
     :return: The retrieved value
     :rtype: any
     """
+    if not config_done:
+        _logger.error(f"No configuration file yet read!")
+        raise ValueError(f"No configuration file yet read!")
+
     try:
         value = _config[section][key]
     except KeyError:
@@ -122,10 +135,15 @@ def set_value(section: str, key: str, value: any, allow_new_keys: bool = True) -
     :type allow_new_keys: bool, optional
 
     :raises ValueError: Raised if invalid section name or key is passed
+    :raises RuntimeError: Raised if no configuration file has been read
 
     :return: Void
     :rtype: None
     """
+    if not config_done:
+        _logger.error(f"No configuration file yet read!")
+        raise ValueError(f"No configuration file yet read!")
+
     try:
         _config[section]
     except KeyError:
@@ -141,4 +159,4 @@ def set_value(section: str, key: str, value: any, allow_new_keys: bool = True) -
         _config[section][key] = value
 
 # List the functions and variables accessible in other modules
-__all__ = ["save_config", "configure", "get_value", "set_value"]
+__all__ = ["save_config", "configure", "config_done", "get_value", "set_value"]
