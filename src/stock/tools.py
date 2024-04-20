@@ -91,4 +91,16 @@ def r_squared(y_data: np.ndarray[float], y_fit: np.ndarray[float]) -> float:
     return r2
 
 
-__all__ = ["map_to_None", "strdate", "symbol_to_params", "r_squared"]
+def order_or_magnitude(number: float) -> int:
+    """Function that gives the order of magnitude for a given number
+
+    :param number: The number to consider
+    :type number: float
+
+    :return: The order of magnitude
+    :rtype: int
+    """
+    return int(np.log(number) / np.log(10))
+
+
+__all__ = ["map_to_None", "strdate", "symbol_to_params", "r_squared", "order_or_magnitude"]

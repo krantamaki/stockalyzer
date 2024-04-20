@@ -16,7 +16,7 @@ from scipy.optimize import curve_fit
 _logger = logging.getLogger(__name__)
 
 
-from stock.tools import r_squared
+from stock.tools import r_squared, order_or_magnitude
 
 
 class StatementRow():
@@ -37,7 +37,7 @@ class StatementRow():
     def __init__(self, row_name: str, values: np.ndarray[float], dates: np.ndarray[np.datetime64]) -> None:
         """Constructor. See class definition for info on the parameters.
         """
-        if len(dates) != len(dates):
+        if len(values) != len(dates):
             _logger.error(f"The lengths of the 'values' and 'dates' arrays must match! ({len(values)} != {len(dates)})")
             raise ValueError(f"The lengths of the 'values' and 'dates' arrays must match! ({len(values)} != {len(dates)})")
         
@@ -81,8 +81,9 @@ class StatementRow():
         :return: The value associated with given key
         :rtype: float
         """
-        if key in self.__value_dict.keys():
-            return self.__value_dict[key]
+        valid_key = np.datetime64(key, 'D')
+        if valid_key in self.__value_dict.keys():
+            return self.__value_dict[valid_key]
         else:
             _logger.error(f"Invalid key {key} passed!")
             raise KeyError(f"Invalid key {key} passed!")
@@ -95,16 +96,11 @@ class StatementRow():
         :param value: The new value to be set
         :type value: float
 
-        :raises KeyError: Raised if an invalid key passed
-
         :return: Void
         :rtype: None
         """
-        if key in self.__value_dict.keys():
-            self.__value_dict[key] = value
-        else:
-            _logger.error(f"Invalid key {key} passed!")
-            raise KeyError(f"Invalid key {key} passed!")
+        valid_key = np.datetime64(key, 'D')
+        self.__value_dict[valid_key] = value
     
     def iget(self, key: int) -> tuple[np.datetime64, float]:
         """Method for accessing the key-value pair of the reporting date and value reported
@@ -216,7 +212,7 @@ class StatementRow():
         def log_func(x, a, b):
             return a * np.log(b * x)
         
-        func_map = {"linear": lin_func,
+        func_map = {"linear":      lin_func,
                     "exponential": exp_func,
                     "logarithmic": log_func}
         
@@ -233,21 +229,24 @@ class StatementRow():
         
         x_data = np.linspace(1, x_diff * len(y_data), len(y_data))
 
-        # These are mainly useful for the exponential function
-        init_params = [y_data[0], 1e-3]
+        if func == "exponential":
+            # Purely heuristic initial parameters
+            init_params = [y_data[0], 10 ** (-order_or_magnitude(y_data[0]))]
+        else:
+            init_params = [1, 1]
 
         try:
             popt, _ = curve_fit(used_func, x_data, y_data, p0=init_params)
-            _logger.debug(f"Found parameters for {func} function are: {popt} (row {self.__name})")
+            _logger.debug(f"Found parameters for {func} function are: {popt} (row '{self.__name}')")
         except RuntimeError:
-            _logger.error(f"Could not fit a(n) {func} curve to the values: {y_data}! (row {self.__name})")
-            raise RuntimeError(f"Could not fit a(n) {func} curve to the values: {y_data}! (row {self.__name})")
+            _logger.error(f"Could not fit a(n) {func} curve to the values: {y_data}! (row '{self.__name}')")
+            raise RuntimeError(f"Could not fit a(n) {func} curve to the values: {y_data}! (row '{self.__name}')")
         
         # Compute the R-squared value for the goodness of fit
         y_fit = used_func(x_data, *popt)
 
         r2 = r_squared(y_data, y_fit)
-        _logger.info(f"R-squared value for {func} function: {r2:.3f} (row {self.__name})")
+        _logger.info(f"R-squared value for {func} function: {r2:.3f} (row '{self.__name}')")
 
         ret_arr = []
         for i in range(1, n_predictions + 1):
@@ -283,7 +282,7 @@ class StatementRow():
         x_data = np.linspace(1, x_diff * len(y_data), len(y_data))
 
         try:
-            popt, _ = curve_fit(func, x_data, y_data, p0=init_params)
+            popt, _ = curve_fit(func, x_data, y_data, p0=init_params, )
             _logger.debug(f"Found parameters for the custom function are: {popt}")
         except RuntimeError:
             _logger.error(f"Could not fit a curve to the values: {y_data}!")
@@ -293,7 +292,7 @@ class StatementRow():
         y_fit = func(x_data, *popt)
         
         r2 = r_squared(y_data, y_fit)
-        _logger.info(f"R-squared value for custom function: {r2:.3f} (row {self.__name})")
+        _logger.info(f"R-squared value for custom function: {r2:.3f} (row '{self.__name}')")
 
         ret_arr = []
         for i in range(1, n_predictions + 1):
