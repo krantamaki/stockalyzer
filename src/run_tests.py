@@ -32,16 +32,26 @@ if __name__ == "__main__":
 from db.tests import TestDatabaseFunctions
 from config.tests import TestConfigFunctions
 from stock.stockAPI.tests import TestAPIMethods
+from stock.financial_reporting.tests import TestStatementRowMethods
 
+# If there is only one TestCase object in the module it is enough
+# to name it. Otherwise, list all of the TestCase objects in a list
 test_map = {"db": TestDatabaseFunctions,
             "config": TestConfigFunctions,
-            "stockAPI": TestAPIMethods}
+            "stockAPI": TestAPIMethods,
+            "financial_reporting": [TestStatementRowMethods]}
 
 
 # Function for loading tests from a given module
 def load_tests_from_module(module, loader):
-    test_class = test_map[module]
-    return loader.loadTestsFromTestCase(test_class)
+    module_tests = test_map[module]
+    if isinstance(module_tests, list):
+        for test_case in module_tests:
+            loader = loader.loadTestsFromTestCase(test_case)
+
+        return loader 
+
+    return loader.loadTestsFromTestCase(module_tests)
 
 
 # Simple function for parsing the command line arguments
@@ -81,6 +91,8 @@ def main():
             suite.addTest(load_tests_from_module('config', loader))
         if args['stockAPI']:
             suite.addTest(load_tests_from_module('stockAPI', loader))
+        if args['financial_reporting']:
+            suite.addTest(load_tests_from_module('financial_reporting', loader))
 
     runner = unittest.TextTestRunner()
     runner.run(suite)
