@@ -103,4 +103,23 @@ def order_or_magnitude(number: float) -> int:
     return int(np.log(number) / np.log(10))
 
 
-__all__ = ["map_to_None", "strdate", "symbol_to_params", "r_squared", "order_or_magnitude"]
+def map_to_float(arr: list[str]) -> list[any]:
+    """Function that tries to convert a list of str to a list of corresponding float
+    values. If conversion to float is not possible, None is placed instead.
+
+    :param arr: The array of strings to be converted
+    :type arr: list[str]
+
+    :return: The converted array
+    :rtype: list[any]
+    """
+    def to_float(value):
+        try:
+            return float(value)
+        except ValueError:
+            return None
+
+    return [to_float(value) for value in arr]
+
+
+__all__ = ["map_to_None", "strdate", "symbol_to_params", "r_squared", "order_or_magnitude", "map_to_float"]
