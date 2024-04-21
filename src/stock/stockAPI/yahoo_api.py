@@ -101,7 +101,7 @@ class YahooAPI(abcAPI):
         value_dict = dict(value_tups)
 
         value_dict[db_keys[0]] = self.__ticker
-        value_dict[db_keys[1]] = str(np.datetime64('today', 'D'))
+        value_dict[db_keys[1]] = np.datetime64('today', 'D')
 
         return value_dict
     
@@ -141,8 +141,8 @@ class YahooAPI(abcAPI):
     def income_statement(self, altkeys: dict[str, str] = None) -> pd.DataFrame:
         """Method for accessing the income statement for the stock. The basic information
         is defined as the column values for the incomeStmt table (see README or schema.py) columns
-        "totRevenue" onwards. If some of the information cannot be reached the value will default 
-        to None. The keys in the returned dictionary will be the column names for the stock table ¨
+        "totRevenue" onwards. If some of the information cannot be reached the value will default
+        to None. The keys in the returned dictionary will be the column names for the stock table
         unless alternative keys are passed as a kwarg.
 
         :param altkeys: Alternative keys as a dictionary of form column name -> alternative key \
@@ -165,7 +165,7 @@ class YahooAPI(abcAPI):
         statement_start = db_keys.index('totRevenue')
 
         if altkeys is not None:
-            if not set(db_keys).issubset(set(altkeys.keys())):
+            if not set(db_keys[statement_start:]).issubset(set(altkeys.keys())):
                 _logger.error(f"Alternative keys must contain all of the column names!")
                 raise ValueError(f"Alternative keys must contain all of the column names!")
 
@@ -216,7 +216,7 @@ class YahooAPI(abcAPI):
         statement_start = db_keys.index('totAssets')
 
         if altkeys is not None:
-            if not set(db_keys).issubset(set(altkeys.keys())):
+            if not set(db_keys[statement_start:]).issubset(set(altkeys.keys())):
                 _logger.error(f"Alternative keys must contain all of the column names!")
                 raise ValueError(f"Alternative keys must contain all of the column names!")
 
@@ -267,7 +267,7 @@ class YahooAPI(abcAPI):
         statement_start = db_keys.index('opCashFlow')
 
         if altkeys is not None:
-            if not set(db_keys).issubset(set(altkeys.keys())):
+            if not set(db_keys[statement_start:]).issubset(set(altkeys.keys())):
                 _logger.error(f"Alternative keys must contain all of the column names!")
                 raise ValueError(f"Alternative keys must contain all of the column names!")
 
