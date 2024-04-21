@@ -147,18 +147,32 @@ class StatementRow():
     def mean(self) -> float:
         """Method for computing the mean of the stored values
 
+        :raises ValueError: Raised if values are None
+
         :return: The computed mean
         :rtype: float
         """
-        return np.array(list(self.__value_dict.values())).mean()
+        values = np.array(list(self.__value_dict.values()))
+        if values.dtype.name == 'object':
+            _logger.error(f"Cannot compute the mean with None values!")
+            raise ValueError(f"Cannot compute the mean with None values!")
+
+        return values.mean()
     
     def std(self) -> float:
         """Method for computing the standard deviation of the stored values
 
+        :raises ValueError: Raised if values are None
+
         :return: The computed standard deviation
         :rtype: float
         """
-        return np.array(list(self.__value_dict.values())).std()
+        values = np.array(list(self.__value_dict.values()))
+        if values.dtype.name == 'object':
+            _logger.error(f"Cannot compute the standard deviation with None values!")
+            raise ValueError(f"Cannot compute the standard deviation with None values!")
+
+        return values.std()
     
     def predict(self, n_predictions: int = 1, func: str = "linear") -> np.ndarray[float]:
         """Method for making predictions from the existing values. Depending on the chosen
@@ -196,7 +210,7 @@ class StatementRow():
                      'logarithmic'. Defaults to 'linear'
         :type func: str, optional
 
-        :raises ValueError: Raised if invalid value passed
+        :raises ValueError: Raised if invalid parameter value passed or stored values are None
         :raises RuntimeError: Raised if fitting was not successful
 
         :return: The made predictions in an array
@@ -223,6 +237,10 @@ class StatementRow():
             raise KeyError(f"Invalid function type {func} passed!")
 
         y_data = np.flip(np.array(list(self.__value_dict.values())))
+
+        if y_data.dtype.name == 'object':
+            _logger.error(f"Predictions not possible with None values!")
+            raise ValueError(f"Predictions not possible with None values!")
 
         date_data = np.flip(np.array(list(self.__value_dict.keys())).astype(int))
         x_diff = int(np.diff(date_data).mean())
@@ -269,12 +287,17 @@ class StatementRow():
                               values are. Defaults to 1
         :type n_predictions: int, optional
 
-        :raises RuntimeError : Raised if fitting was not successful
+        :raises RuntimeError: Raised if fitting was not successful
+        :raises ValueError: Raised if values are None
 
         :return: The made predictions in an array
         :rtype: np.ndarray[float]
         """
         y_data = np.flip(np.array(list(self.__value_dict.values())))
+        
+        if y_data.dtype.name == 'object':
+            _logger.error(f"Predictions not possible with None values!")
+            raise ValueError(f"Predictions not possible with None values!")
 
         date_data = np.flip(np.array(list(self.__value_dict.keys())).astype(int))
         x_diff = int(np.diff(date_data).mean())
