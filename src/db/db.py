@@ -307,6 +307,8 @@ def get_by_value(value: any, table_name: str, column_name: str) -> list[tuple[an
     :param column_name: The name of the column in which the value is matched
     :type column_name: str
 
+    :raises ValueError: Raised if no rows match the criteria
+
     :return: A list of tuples containing the values of the found rows
     :rtype: list[tuple[any, ...]]
     """
@@ -334,6 +336,8 @@ def delete_by_value(value: any, table_name: str, column_name: str) -> None:
     :type table_name: str
     :param column_name: The name of the column in which the value is matched
     :type column_name: str
+
+    :raises ValueError: Raised if no rows match the criteria
 
     :return: Void
     :rtype: None
@@ -363,6 +367,8 @@ def update_by_value(value: any, value_tuple: tuple[str, any], table_name: str, c
     :type table_name: str
     :param column_name: The name of the column in which thevalue is matched
     :type column_name: str
+
+    :raises ValueError: Raised if no rows match the criteria
 
     :return: Void
     :rtype: None
